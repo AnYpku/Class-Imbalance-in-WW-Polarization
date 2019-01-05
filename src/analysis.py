@@ -39,6 +39,51 @@ def classical(classifer, X, y, folder):
             'roc_auc':aucs,
             'sigmas':sigmas}
 
+def deep(classifer, X, y, folder, early_stopping, generator=None):
+    times = []
+    aps = []
+    aucs = []
+    sigmas = []
+
+    for train_index, test_index in folder.split(X, y):
+        t0 = time()
+
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+
+        clf = classifer
+
+        if generator:
+            train_gen, steps = generator(X,
+                                         y,
+                                         batch_size=50)
+            clf.fit_generator(generator=train_gen,
+                              steps_per_epoch=steps,
+                              epochs=1,
+                              callbacks=[early_stopping])
+        else:
+            clf.fit(X,
+                    y,
+                    epochs=1,
+                    batch_size=50,
+                    callbacks=[early_stopping])
+
+        probas = (clf
+                  .predict_proba(X_test))
+        aps.append(average_precision_score(y_test, probas))
+        aucs.append(roc_auc_score(y_test, probas))
+
+        mLL = (log_like.compute_log_likelihood(clf, X_test, y_test) /
+               log_like.rescale)
+        sigmas.append(log_like.compute_sigma(mLL))
+
+        times.append(time() - t0)
+
+    return {'times':times,
+            'average_precision':aps,
+            'roc_auc':aucs,
+            'sigmas':sigmas}
+
 def classification_report(scores):
     print('Time / Fold = %0.1f +/- %0.1f s' %(np.mean(scores['times']),
                                               np.std(scores['times'])))
