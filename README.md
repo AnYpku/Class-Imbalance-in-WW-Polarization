@@ -21,6 +21,7 @@ git clone https://github.com/christopher-w-murphy/Class-Imbalance-in-WW-Polariza
 - Keras version 2.2 or higher `conda install -c conda-forge keras`
 Imbalanced Learn is not fully compatible with Keras v2.0. I am not sure about v2.1.
 - pandas, NumPy, scikit-learn, TensorFlow, Matplotlib, SciPy, and Jupyter Notebook
+
 Optionally:
 - pylhe `pip install pylhe` This is only used in preprocessing to extract the simulated data in lhe files and write them to csv. Since the csv files are included in the data folder there is no need to install this package to use the rest of the repo.
 
@@ -29,10 +30,12 @@ See the [notebook](https://github.com/christopher-w-murphy/Class-Imbalance-in-WW
 
 ### Comparison
 First is a comparison between this work and arXiv:1812.07591, which establishes some baseline models. Below are the predicted _LL_ fractions from this work
+
 ![Predicted LL Fraction](https://github.com/christopher-w-murphy/Class-Imbalance-in-WW-Polarization/blob/master/static/predicted_LL_fraction.png)
 
 ### Different Metrics
 Next these models are evaluated using metrics better suited for class imbalance problems. Below are the precision-recall curves for the baseline models
+
 ![Precision-Recall Curves](https://github.com/christopher-w-murphy/Class-Imbalance-in-WW-Polarization/blob/master/static/PR_curve.png)
 
 ### Different Models
