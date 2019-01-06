@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 
 from sklearn.model_selection import StratifiedKFold
-from sklearn.preprocessing import StandardScaler
 
 from keras.callbacks import EarlyStopping
 
@@ -23,12 +22,9 @@ dfww = (process_data.get_events('data/jjWpmWpm_undecayed_01.csv')
         .append(process_data.get_events('data/jjWpmWpm_undecayed_03.csv'), ignore_index=True))
 
 X = (dfww
-     .drop('n_lon', axis = 1))
+     .drop('n_lon', axis = 1)
+     .values)
 y = (dfww['n_lon'] == 2)
-
-scaler_dnn = StandardScaler()
-X_dnn = (scaler_dnn
-         .fit_transform(X))
 
 skf = StratifiedKFold(n_splits=5,
                       random_state=30)
@@ -42,7 +38,7 @@ scores = dict()
 dnn_1 = build_model()
 
 scores['DNN'] = deep(dnn_1,
-                     X_dnn,
+                     X,
                      y,
                      skf,
                      early_stopping)
@@ -53,24 +49,11 @@ classification_report(scores['DNN'])
 
 pkl_save_obj(scores, 'deep_scores') # save early and save often
 
-## Weighted DNN - use Focal Loss to implement weights
-dnn_2 = build_model(loss_function=focal_loss(gamma=0.0, alpha=0.75))
-
-scores['Weighted DNN'] = deep(dnn_2,
-                              X_dnn,
-                              y,
-                              skf,
-                              early_stopping)
-
-classification_report(scores['Weighted DNN'])
-
-pkl_save_obj(scores, 'deep_scores')
-
 ## DNN w/ Focal Loss
-dnn_3 = build_model(loss_function=focal_loss())
+dnn_2 = build_model(loss_function=focal_loss())
 
-scores['DNN w/ Focal Loss g=2.0, a=0.25'] = deep(dnn_3,
-                                                 X_dnn,
+scores['DNN w/ Focal Loss g=2.0, a=0.25'] = deep(dnn_2,
+                                                 X,
                                                  y,
                                                  skf,
                                                  early_stopping)
@@ -80,10 +63,10 @@ classification_report(scores['DNN w/ Focal Loss g=2.0, a=0.25'])
 pkl_save_obj(scores, 'deep_scores')
 
 ## DNN w/ Focal Loss
-dnn_4 = build_model(loss_function=focal_loss(gamma=0.5, alpha=0.5))
+dnn_3 = build_model(loss_function=focal_loss(gamma=0.5, alpha=0.5))
 
-scores['DNN w/ Focal Loss g=0.5, a=0.5'] = deep(dnn_4,
-                                                X_dnn,
+scores['DNN w/ Focal Loss g=0.5, a=0.5'] = deep(dnn_3,
+                                                X,
                                                 y,
                                                 skf,
                                                 early_stopping)
@@ -93,10 +76,10 @@ classification_report(scores['DNN w/ Focal Loss g=0.5, a=0.5'])
 pkl_save_obj(scores, 'deep_scores')
 
 ## DNN w/ Focal Loss
-dnn_5 = build_model(loss_function=focal_loss(gamma=0.2, alpha=0.75))
+dnn_4 = build_model(loss_function=focal_loss(gamma=0.2, alpha=0.75))
 
-scores['DNN w/ Focal Loss g=0.2, a=0.75'] = deep(dnn_5,
-                                                 X_dnn,
+scores['DNN w/ Focal Loss g=0.2, a=0.75'] = deep(dnn_4,
+                                                 X,
                                                  y,
                                                  skf,
                                                  early_stopping)
@@ -105,12 +88,11 @@ classification_report(scores['DNN w/ Focal Loss g=0.2, a=0.75'])
 
 pkl_save_obj(scores, 'deep_scores')
 
-
 ## Balanced Batch DNN
-dnn_6 = build_model()
+dnn_5 = build_model()
 
-scores['Balanced Batch DNN'] = deep(dnn_6,
-                                    X_dnn,
+scores['Balanced Batch DNN'] = deep(dnn_5,
+                                    X,
                                     y,
                                     skf,
                                     early_stopping,
