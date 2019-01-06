@@ -2,16 +2,17 @@ import numpy as np
 from time import time
 
 from sklearn.metrics import average_precision_score, roc_auc_score
+from sklearn.preprocessing import StandardScaler
 
 from src.compute_LL import logLikelihood
-
-log_like = logLikelihood()
 
 def classical(classifer, X, y, folder):
     times = []
     aps = []
     aucs = []
     sigmas = []
+
+    log_like = logLikelihood()
 
     for train_index, test_index in folder.split(X, y):
         t0 = time()
@@ -45,27 +46,37 @@ def deep(classifer, X, y, folder, early_stopping, generator=None):
     aucs = []
     sigmas = []
 
+    scaler_dnn = StandardScaler()
+    log_like = logLikelihood()
+
+    clf = classifer
+    untrained_weights = clf.get_weights()
+
     for train_index, test_index in folder.split(X, y):
         t0 = time()
 
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
+        X_train = (scaler_dnn
+                   .fit_transform(X_train))
+        X_test = (scaler_dnn
+                  .transform(X_test))
 
-        clf = classifer
+        clf.set_weights(untrained_weights)
 
         if generator:
-            train_gen, steps = generator(X,
-                                         y,
-                                         batch_size=50)
+            train_gen, steps = generator(X_train,
+                                         y_train,
+                                         batch_size=256)
             clf.fit_generator(generator=train_gen,
                               steps_per_epoch=steps,
-                              epochs=1,
+                              epochs=200,
                               callbacks=[early_stopping])
         else:
-            clf.fit(X,
-                    y,
-                    epochs=1,
-                    batch_size=50,
+            clf.fit(X_train,
+                    y_train,
+                    epochs=200,
+                    batch_size=1024,
                     callbacks=[early_stopping])
 
         probas = (clf
