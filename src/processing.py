@@ -10,6 +10,11 @@ class processData():
                      'px.W2', 'py.W2', 'pz.W2', 'px.j1', 'py.j1', 'pz.j1',
                      'px.j2', 'py.j2', 'pz.j2', 'spin.W1', 'spin.W2']
         self.rawcols = [e + '.' + p for p in self.partlist for e in self.evtcats]
+        # the following 2 dictionaries are for pT sorting
+        self.W_rename = {'pT.W1':'pT.W2', 'e.W1':'e.W2', 'eta.W1':'eta.W2', 'phi.W1':'phi.W2',
+                         'pT.W2':'pT.W1', 'e.W2':'e.W1', 'eta.W2':'eta.W1', 'phi.W2':'phi.W1'}
+        self.j_rename = {'pT.j1':'pT.j2', 'e.j1':'e.j2', 'eta.j1':'eta.j2', 'phi.j1':'phi.j2',
+                         'pT.j2':'pT.j1', 'e.j2':'e.j1', 'eta.j2':'eta.j1', 'phi.j2':'phi.j1'}
 
     def pt(self, px, py):
         # transverse momentum
@@ -69,6 +74,7 @@ class processData():
                               df['py.j1'] + df['py.j2'],
                               df['pz.j1'] + df['pz.j2'])
         df['delta_eta.jj'] = np.abs(df['eta.j1'] - df['eta.j2'])
+        # the maximum difference in azimuth is pi
         delta_phis = np.abs(df['phi.j1'] - df['phi.j2'])
         df['delta_phi.jj'] = np.array([dp if dp <= np.pi else 2*np.pi - dp
                                        for dp in delta_phis])
@@ -100,12 +106,33 @@ class processData():
         df[converted_ints.columns] = converted_ints
         df[converted_floats.columns] = converted_floats
 
-        # reorder columns such that n_lon is 1st
-        df = df[df
-                .columns[4:5]
-                .append(df
-                        .columns[:4])
-                .append(df
-                        .columns[5:])]
-
         return df
+
+    def get_pT_sorted_events(self, csvfile):
+        """
+        the same as get_events(),
+        but where pT.j1 > pT.j2 and pT.W1 > pT.W2 for all events
+        """
+        df = self.get_events(csvfile)
+
+        df11 = df[(df['pT.j1'] > df['pT.j2']) & (df['pT.W1'] > df['pT.W2'])]
+        df12 = df[(df['pT.j1'] > df['pT.j2']) & (df['pT.W1'] < df['pT.W2'])]
+        df21 = df[(df['pT.j1'] < df['pT.j2']) & (df['pT.W1'] > df['pT.W2'])]
+        df22 = df[(df['pT.j1'] < df['pT.j2']) & (df['pT.W1'] < df['pT.W2'])]
+
+        df12 = (df12
+                .rename(columns=self.W_rename))
+        df21 = (df21
+                .rename(columns=self.j_rename))
+        df22 = (df22
+                .rename(columns=self.W_rename)
+                .rename(columns=self.j_rename))
+
+        dfs = (df11
+               .append(df12, ignore_index=True)
+               .append(df21, ignore_index=True)
+               .append(df22, ignore_index=True))
+
+        return (dfs
+                .sample(frac=1)
+                .reset_index(drop=True))
