@@ -70,12 +70,12 @@ def deep(classifer, X, y, folder, early_stopping, generator=None):
                                          batch_size=256)
             clf.fit_generator(generator=train_gen,
                               steps_per_epoch=steps,
-                              epochs=200,
+                              epochs=300,
                               callbacks=[early_stopping])
         else:
             clf.fit(X_train,
                     y_train,
-                    epochs=200,
+                    epochs=300,
                     batch_size=1024,
                     callbacks=[early_stopping])
 
