@@ -15,9 +15,11 @@ from src.utils import pkl_save_obj
 
 process_data = processData()
 
-dfww = (process_data.get_events('data/jjWpmWpm_undecayed_01.csv')
-        .append(process_data.get_events('data/jjWpmWpm_undecayed_02.csv'), ignore_index=True)
-        .append(process_data.get_events('data/jjWpmWpm_undecayed_03.csv'), ignore_index=True))
+dfww = (process_data.get_pT_sorted_events('data/jjWpmWpm_undecayed_01.csv')
+        .append(process_data.get_pT_sorted_events('data/jjWpmWpm_undecayed_02.csv'),
+                                                  ignore_index=True)
+        .append(process_data.get_pT_sorted_events('data/jjWpmWpm_undecayed_03.csv'),
+                                                  ignore_index=True))
 
 X = (dfww
      .drop('n_lon', axis = 1))
