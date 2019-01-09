@@ -1,4 +1,3 @@
-from keras.callbacks import EarlyStopping
 from keras.layers import Activation, Dense, Dropout
 from keras.layers.normalization import BatchNormalization
 from keras.models import Sequential
